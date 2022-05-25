@@ -4,16 +4,15 @@ using System.Reflection;
 using System.Text.Json;
 using CommunicationServiceAbstraction;
 using CommunicationServiceApiHosting.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CommunicationServiceApiHosting.ServiceClient;
 
 internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
 {
-    private string _serviceId = null!;
+    private ServiceIdentities _serviceId;
     IHttpClientFactory _httpClientFactory = null!;
-    private IServiceAddressResolver _serviceAddressResolver = null;
+    private IServiceAddressResolver? _serviceAddressResolver = null;
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
@@ -29,14 +28,21 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
             //return result;
 
             //route to _serviceId url
-            var httpClient = _httpClientFactory.CreateClient(_serviceId);
+            var httpClient = _httpClientFactory.CreateClient(_serviceId.ToString());
             if (string.IsNullOrWhiteSpace(httpClient?.BaseAddress?.AbsoluteUri))
             {
                 //something wrong
                 throw new InvalidOperationException($"Base uri not set for service identity '{_serviceId}'");
             }
-            var serviceEndpoint = _serviceAddressResolver.GetBusinessServiceEndpoint(typeof(T).Name);
-            
+
+            var serviceType = typeof(T).Name;
+            var serviceEndpoint = _serviceAddressResolver?.GetBusinessServiceEndpoint(serviceType);
+            if (string.IsNullOrWhiteSpace(serviceEndpoint))
+            {
+                //something wrong
+                throw new InvalidOperationException($"Couldn't resolve service endpoint'{serviceType}'");
+            }
+
             try
             {
                 string? argsJson = null;
@@ -76,18 +82,15 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
         }
         catch (TargetInvocationException exc)
         {
-            //_logger.Warning(exc.InnerException, "Method {TypeName}.{MethodName} threw exception: {Exception}", targetMethod.DeclaringType.Name, targetMethod.Name, exc.InnerException);
-
             throw exc.InnerException;
         }
     }
 
 
-    public static T Decorate(IServiceProvider serviceProvider, string serviceId) //, T? target = default
+    public static T Decorate(IServiceProvider serviceProvider, ServiceIdentities serviceId)
     {
         var proxy = Create<T, ProxyDecorator<T>>();
-        //as ProxyDecorator<T>;
-
+        
         var proxyDecorator = (proxy as ProxyDecorator<T>);
         if (proxyDecorator != null)
         {

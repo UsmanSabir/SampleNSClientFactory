@@ -1,8 +1,9 @@
 ﻿using CommunicationServiceAbstraction;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CommunicationServiceApiHosting.ServiceClient;
 
-internal class ClientFactoryImpl:IClientFactory
+internal class ClientFactoryImpl : IClientFactory
 {
     private readonly IServiceProvider _serviceProvider;
 
@@ -13,6 +14,7 @@ internal class ClientFactoryImpl:IClientFactory
 
     public T CreateClient<T>() where T : IBusinessService
     {
-        throw new NotImplementedException();
+        var businessService = _serviceProvider.GetRequiredService<T>();
+        return businessService;
     }
 }
