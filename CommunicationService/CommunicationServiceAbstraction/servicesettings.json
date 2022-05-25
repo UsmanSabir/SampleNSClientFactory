@@ -1,0 +1,7 @@
+{
+  //sample services section in appsettings
+  "services": {
+    "UMS": "http://localhost:8090/",
+    "ID": "path"
+  }
+}
