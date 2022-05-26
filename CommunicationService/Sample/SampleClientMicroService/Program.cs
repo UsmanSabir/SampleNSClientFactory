@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddCommunicationFramework(builder.Configuration);
 
-builder.Services.RegisterAsServiceClient<IBusinessPartnerService>(ServiceIdentities.UMS);
 builder.Services.RegisterClientBusinessServices(ServiceIdentities.UMS,
     typeof(IBusinessPartnerService).Assembly);
 
