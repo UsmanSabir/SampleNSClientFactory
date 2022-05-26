@@ -1,19 +1,29 @@
 ﻿using System.Reflection;
 using CommunicationServiceAbstraction;
 using CommunicationServiceApiFramework.ServiceClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 namespace CommunicationServiceApiFramework;
 
 public static class Extensions
 {
     #region Framework
 
-    public static IServiceCollection AddCommunicationFramework(this IServiceCollection services)
+    public static IServiceCollection AddCommunicationFramework(this IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IClientFactory, ClientFactoryImpl>();
         services.AddScoped<IServiceAddressResolver, ConfigFileServiceAddressResolver>();
+
         services.AddHttpClient();
+        var clientAddresses = config.GetSection("services")?.AsEnumerable();
+        if (clientAddresses != null)
+            foreach (var address in clientAddresses)
+            {
+                //todo param checks
+                services.AddHttpClient(address.Key, client => { client.BaseAddress = new Uri(address.Value); });
+                //todo polly
+            }
+
         return services;
     }
 
