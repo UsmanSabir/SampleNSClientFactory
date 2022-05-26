@@ -1,8 +1,14 @@
+using CommunicationServiceApiFramework;
+using Sample.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.RegisterHostingBusinessServices(typeof(BusinessPartnerService).Assembly);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .WithHostingServices();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
