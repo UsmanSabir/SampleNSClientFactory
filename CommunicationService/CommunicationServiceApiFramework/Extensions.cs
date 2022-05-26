@@ -13,6 +13,7 @@ public static class Extensions
     {
         services.AddScoped<IClientFactory, ClientFactoryImpl>();
         services.AddScoped<IServiceAddressResolver, ConfigFileServiceAddressResolver>();
+        services.AddHttpClient();
         return services;
     }
 
@@ -50,10 +51,11 @@ public static class Extensions
 
         foreach (TypeInfo ti in assemblies.SelectMany(s => s.DefinedTypes))
         {
-            if (ti.IsClass && !ti.IsAbstract && ti.IsPublic
-                           && ti.ImplementedInterfaces.Contains(bizType))
+            var typeArguments = ti.AsType();
+            if (ti.IsInterface && ti.IsPublic && typeArguments != bizType
+                && ti.ImplementedInterfaces.Contains(bizType))
             {
-                var genericMethod = methodInfo.MakeGenericMethod(new[] { ti.GetType() });
+                var genericMethod = methodInfo.MakeGenericMethod(typeArguments);
                 var invoke = genericMethod.Invoke(null, new object[] { services, serviceId });
             }
         }
