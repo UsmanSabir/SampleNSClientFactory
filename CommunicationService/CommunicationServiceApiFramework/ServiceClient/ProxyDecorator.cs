@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json;
 using CommunicationServiceAbstraction;
@@ -13,7 +12,8 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
 {
     private ServiceIdentities _serviceId;
     IHttpClientFactory _httpClientFactory = null!;
-    private IServiceAddressResolver? _serviceAddressResolver = null;
+    private HttpClient? _httpClient;
+    private IServiceAddressResolver? _serviceAddressResolver;
     private ILogger<ProxyDecorator<T>>? _logger;
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
@@ -30,7 +30,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
             //return result;
 
             //route to _serviceId url
-            var httpClient = _httpClientFactory.CreateClient(_serviceId.ToString());
+            var httpClient = _httpClient ??= _httpClientFactory.CreateClient(_serviceId.ToString());
             if (string.IsNullOrWhiteSpace(httpClient?.BaseAddress?.AbsoluteUri))
             {
                 //something wrong
@@ -112,7 +112,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
     public static T Decorate(IServiceProvider serviceProvider, ServiceIdentities serviceId)
     {
         var proxy = Create<T, ProxyDecorator<T>>();
-        
+
         var proxyDecorator = (proxy as ProxyDecorator<T>);
         if (proxyDecorator != null)
         {

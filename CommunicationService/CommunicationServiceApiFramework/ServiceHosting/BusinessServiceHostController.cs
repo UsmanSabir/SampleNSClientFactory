@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using CommunicationServiceAbstraction;
 using CommunicationServiceApiFramework.Models;
 using Microsoft.AspNetCore.Mvc;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace CommunicationServiceApiFramework.ServiceHosting;
 
@@ -30,12 +32,30 @@ public class BusinessServiceHostController<T> : ControllerBase where T : IBusine
                     $"Method '{input?.MethodName}' not found on type '{input?.TypeName}'"));
 
             }
+
             //todo parameters
             object?[]? parm = null;
-            if (!string.IsNullOrWhiteSpace(input.Args)) parm = JsonSerializer.Deserialize<object?[]>(input.Args);
+            if (!string.IsNullOrWhiteSpace(input.Args))
+            {
+                //parm = Newtonsoft.Json.JsonConvert.DeserializeObject<object[]>(input.Args);
+                parm = JsonSerializer.Deserialize<object[]>(input.Args);
+
+                var parameterInfos = methodInfo.GetParameters();
+                if (parm.Length != parameterInfos.Length)
+                    return Ok(ResponseModel.ErrorResult("Parameters count not matched"));
+
+                for (int i = 0; i < parameterInfos.Length; i++)
+                {
+                    var type = parm[i]!.GetType();
+                    Console.WriteLine(type.Name);
+                    JsonElement obj = (JsonElement)(parm[i] ?? throw new ArgumentNullException(nameof(input.Args)));
+                    var rawText = obj.GetRawText();
+                    var deserialize = JsonSerializer.Deserialize(rawText, parameterInfos[i].ParameterType);
+                    parm[i] = deserialize;
+                }
+            }
 
             var response = methodInfo.Invoke(_instance, parm);
-            var json = JsonSerializer.Serialize(response);
             var result = ResponseModel.SuccessResult(response);
             return Ok(result);
         }
