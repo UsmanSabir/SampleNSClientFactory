@@ -29,7 +29,9 @@ namespace SampleClientMicroService.Controllers
             var businessPartnerService = _clientFactory.CreateClient<IBusinessPartnerService>();
             var bpModel = businessPartnerService.GetById(1);
             Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
-
+            bpModel.Name = "abc";
+            bpModel = businessPartnerService.UpdateModel(3, "Temp", bpModel);
+            Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

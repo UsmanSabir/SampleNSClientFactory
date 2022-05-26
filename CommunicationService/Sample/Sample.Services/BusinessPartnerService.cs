@@ -14,5 +14,12 @@ namespace Sample.Services
                 SomeMetaData = "Dummy data"
             };
         }
+
+        public BPModel UpdateModel(int id, string name, BPModel model)
+        {
+            Console.WriteLine($"{id}-{name}-{model.DateOfBirth}");
+            model.Name = "Upd";
+            return model;
+        }
     }
 }
