@@ -76,12 +76,22 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                                     JsonSerializer.Deserialize(responseModel.Response, targetMethod.ReturnType);
                                 return responseObj;
                             }
+
+                            return null;
                         }
                         else
                         {
                             throw new RemoteException(responseModel.Error);
                         }
                     }
+                    else
+                    {
+                        throw new ApplicationException("Didn't receive response from remote server");
+                    }
+                }
+                else
+                {
+                    throw new ApplicationException($"Didn't receive success response from remote server. {response.StatusCode}");
                 }
             }
             catch (AggregateException ae)
