@@ -3,9 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommunicationServiceAbstraction", "CommunicationServiceAbstraction\CommunicationServiceAbstraction.csproj", "{88239FA9-7F91-4B78-8E47-18A505178C6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommunicationServiceAbstraction", "CommunicationServiceAbstraction\CommunicationServiceAbstraction.csproj", "{88239FA9-7F91-4B78-8E47-18A505178C6B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommunicationServiceApiHosting", "CommunicationServiceApiHosting\CommunicationServiceApiHosting.csproj", "{001F6FE1-8EA4-4279-9232-28D4689DAFD9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{97204B9F-1757-46CA-BB5F-B871D67B7B1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Contracts", "Sample\Sample.Contracts\Sample.Contracts.csproj", "{5DF5C678-D8E0-4A8C-A5F0-45229F8DE7D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample.Services", "Sample\Sample.Services\Sample.Services.csproj", "{DE26D8E5-E433-4DFC-9122-B5CB0E13C99A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleClientMicroService", "Sample\SampleClientMicroService\SampleClientMicroService.csproj", "{645A2C12-183E-430E-91FF-AA2759E15BAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleHostMicroService", "Sample\SampleHostMicroService\SampleHostMicroService.csproj", "{F9E3D088-5989-4D21-86A1-171212821D75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +31,31 @@ Global
 		{001F6FE1-8EA4-4279-9232-28D4689DAFD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{001F6FE1-8EA4-4279-9232-28D4689DAFD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{001F6FE1-8EA4-4279-9232-28D4689DAFD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DF5C678-D8E0-4A8C-A5F0-45229F8DE7D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DF5C678-D8E0-4A8C-A5F0-45229F8DE7D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DF5C678-D8E0-4A8C-A5F0-45229F8DE7D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DF5C678-D8E0-4A8C-A5F0-45229F8DE7D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE26D8E5-E433-4DFC-9122-B5CB0E13C99A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE26D8E5-E433-4DFC-9122-B5CB0E13C99A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE26D8E5-E433-4DFC-9122-B5CB0E13C99A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE26D8E5-E433-4DFC-9122-B5CB0E13C99A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{645A2C12-183E-430E-91FF-AA2759E15BAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{645A2C12-183E-430E-91FF-AA2759E15BAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{645A2C12-183E-430E-91FF-AA2759E15BAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{645A2C12-183E-430E-91FF-AA2759E15BAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9E3D088-5989-4D21-86A1-171212821D75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9E3D088-5989-4D21-86A1-171212821D75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9E3D088-5989-4D21-86A1-171212821D75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9E3D088-5989-4D21-86A1-171212821D75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5DF5C678-D8E0-4A8C-A5F0-45229F8DE7D6} = {97204B9F-1757-46CA-BB5F-B871D67B7B1D}
+		{DE26D8E5-E433-4DFC-9122-B5CB0E13C99A} = {97204B9F-1757-46CA-BB5F-B871D67B7B1D}
+		{645A2C12-183E-430E-91FF-AA2759E15BAA} = {97204B9F-1757-46CA-BB5F-B871D67B7B1D}
+		{F9E3D088-5989-4D21-86A1-171212821D75} = {97204B9F-1757-46CA-BB5F-B871D67B7B1D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F17D9314-CAD9-40EF-9364-858E5B83D9C4}
