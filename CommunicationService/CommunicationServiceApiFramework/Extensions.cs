@@ -14,11 +14,14 @@ public static class Extensions
         services.AddScoped<IClientFactory, ClientFactoryImpl>();
         services.AddScoped<IServiceAddressResolver, ConfigFileServiceAddressResolver>();
 
-        services.AddHttpClient();
-        var clientAddresses = config.GetSection("services")?.AsEnumerable();
+        var clientAddresses = config.GetSection("services")?
+            .GetChildren().AsEnumerable();
         if (clientAddresses != null)
             foreach (var address in clientAddresses)
             {
+                if (string.IsNullOrWhiteSpace(address.Key) || string.IsNullOrWhiteSpace(address.Value))
+                    continue;
+
                 //todo param checks
                 services.AddHttpClient(address.Key, client => { client.BaseAddress = new Uri(address.Value); });
                 //todo polly
