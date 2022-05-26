@@ -1,6 +1,6 @@
 ﻿namespace CommunicationServiceApiFramework.Models;
 
-internal class RequestModel
+public class RequestModel
 {
     public string? TypeName { get; set; }
     public string MethodName { get; set; }
