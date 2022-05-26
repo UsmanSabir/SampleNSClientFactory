@@ -66,25 +66,35 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                     var responseModel = response.Content.ReadFromJsonAsync<ResponseModel>().Result;
                     if (responseModel != null)
                     {
+                        _logger?.LogDebug($"Response received. Success '{responseModel.IsSuccess}', Error: '{responseModel.Error}' and response: '{responseModel.Response}'");
                         //response model
+                        if (responseModel.IsSuccess)
+                        {
+                            if (targetMethod.ReturnType != typeof(void))
+                            {
+                                var responseObj =
+                                    JsonSerializer.Deserialize(responseModel.Response, targetMethod.ReturnType);
+                                return responseObj;
+                            }
+                        }
+                        else
+                        {
+                            throw new RemoteException(responseModel.Error);
+                        }
                     }
                 }
             }
-            catch (Exception e)
+            catch (AggregateException ae)
             {
                 //todo
-                Console.WriteLine(e);
+                _logger?.LogError(ae.ToString());
+                throw ae.InnerException!;
             }
-
-            var json = JsonSerializer.Serialize(args);
-            Debug.WriteLine(json);
-            var objects = JsonSerializer.Deserialize<object?[]>(json);
-            Debug.WriteLine(objects[0]);
-            return 5;
         }
         catch (TargetInvocationException exc)
         {
-            throw exc.InnerException;
+            _logger?.LogError(exc.InnerException?.ToString());
+            throw exc.InnerException!;
         }
     }
 
