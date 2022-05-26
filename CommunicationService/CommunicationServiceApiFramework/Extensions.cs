@@ -28,7 +28,7 @@ public static class Extensions
         return services;
     }
 
-    static IServiceCollection RegisterClientBusinessServices(this IServiceCollection services, ServiceIdentities serviceId, params Assembly[] assemblies)
+    public static IServiceCollection RegisterClientBusinessServices(this IServiceCollection services, ServiceIdentities serviceId, params Assembly[] assemblies)
     {
         var type = typeof(Extensions);
         var methodInfo = type.GetMethod(nameof(RegisterAsServiceClient), BindingFlags.Public | BindingFlags.Static);
@@ -38,7 +38,7 @@ public static class Extensions
 
         foreach (TypeInfo ti in assemblies.SelectMany(s => s.DefinedTypes))
         {
-            if (ti.IsClass && !ti.IsAbstract
+            if (ti.IsClass && !ti.IsAbstract && ti.IsPublic
                            && ti.ImplementedInterfaces.Contains(bizType))
             {
                 var genericMethod = methodInfo.MakeGenericMethod(new[] { ti.GetType() });
