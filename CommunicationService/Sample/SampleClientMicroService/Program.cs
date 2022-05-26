@@ -1,7 +1,14 @@
+using CommunicationServiceAbstraction;
+using CommunicationServiceApiFramework;
+using Sample.Contracts;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.RegisterAsServiceClient<IBusinessPartnerService>(ServiceIdentities.UMS);
+    //.RegisterClientBusinessServices(ServiceIdentities.UMS,
+    typeof(IBusinessPartnerService).Assembly);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

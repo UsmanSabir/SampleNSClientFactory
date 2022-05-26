@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CommunicationServiceAbstraction\CommunicationServiceAbstraction.csproj" />
-    <ProjectReference Include="..\..\CommunicationServiceApiHosting\CommunicationServiceApiHosting.csproj" />
+    <ProjectReference Include="..\..\CommunicationServiceApiFramework\CommunicationServiceApiFramework.csproj" />
     <ProjectReference Include="..\Sample.Contracts\Sample.Contracts.csproj" />
   </ItemGroup>
 
