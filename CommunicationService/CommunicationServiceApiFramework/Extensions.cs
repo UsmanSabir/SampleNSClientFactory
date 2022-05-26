@@ -7,7 +7,19 @@ namespace CommunicationServiceApiFramework;
 
 public static class Extensions
 {
+    #region Framework
+
+    public static IServiceCollection AddCommunicationFramework(this IServiceCollection services)
+    {
+        services.AddScoped<IClientFactory, ClientFactoryImpl>();
+        services.AddScoped<IServiceAddressResolver, ConfigFileServiceAddressResolver>();
+        return services;
+    }
+
+    #endregion
+
     #region Client Services
+
 
     public static IServiceCollection RegisterAsServiceClient<T>(this IServiceCollection services, ServiceIdentities serviceId)
         where T : IBusinessService
@@ -48,7 +60,7 @@ public static class Extensions
 
         return services;
     }
-    
+
 
     #endregion
 
