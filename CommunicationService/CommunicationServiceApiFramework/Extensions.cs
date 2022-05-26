@@ -15,17 +15,15 @@ public static class Extensions
         services.AddScoped<IServiceAddressResolver, ConfigFileServiceAddressResolver>();
 
         services.AddHttpClient();
-        var clientAddresses = config.GetSection("services").AsEnumerable();
-        foreach (var address in clientAddresses)
-        {
-            //todo param checks
-            services.AddHttpClient(address.Key, client =>
+        var clientAddresses = config.GetSection("services")?.AsEnumerable();
+        if (clientAddresses != null)
+            foreach (var address in clientAddresses)
             {
-                client.BaseAddress = new Uri(address.Value);
-                
-            });
-            //todo polly
-        }
+                //todo param checks
+                services.AddHttpClient(address.Key, client => { client.BaseAddress = new Uri(address.Value); });
+                //todo polly
+            }
+
         return services;
     }
 
