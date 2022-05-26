@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using CommunicationServiceAbstraction;
-using CommunicationServiceApiHosting.ServiceClient;
+using CommunicationServiceApiFramework.ServiceClient;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CommunicationServiceApiHosting.Helpers;
+namespace CommunicationServiceApiFramework.Helpers;
 
 public static class Extensions
 {
