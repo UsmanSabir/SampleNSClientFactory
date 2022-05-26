@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using CommunicationServiceAbstraction;
 using CommunicationServiceApiFramework.ServiceClient;
+using CommunicationServiceApiFramework.ServiceHosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 namespace CommunicationServiceApiFramework;
@@ -33,8 +34,7 @@ public static class Extensions
     #endregion
 
     #region Client Services
-
-
+    
     public static IServiceCollection RegisterAsServiceClient<T>(this IServiceCollection services, ServiceIdentities serviceId)
         where T : IBusinessService
     {
@@ -79,5 +79,43 @@ public static class Extensions
 
     #endregion
 
+    #region Service Hosting
 
+    public static IServiceCollection RegisterHostingBusinessServices(this IServiceCollection services, params Assembly[] assemblies)
+    {
+        var type = typeof(Extensions);
+        
+        var bizType = typeof(IBusinessService);
+
+        foreach (TypeInfo ti in assemblies.SelectMany(s => s.DefinedTypes))
+        {
+            if (ti.IsClass && !ti.IsAbstract && ti.IsPublic 
+                && ti.ImplementedInterfaces.Contains(bizType))
+            {
+                BusinessServiceDiscovery.RegisterType(ti);
+                services.AddScoped(ti);
+            }
+        }
+
+        return services;
+    }
+
+
+    public static IMvcBuilder AddControllersWithHostingServices(this IServiceCollection services)
+    {
+        return services.AddControllers()
+            .WithHostingServices();
+    }
+
+    public static IMvcBuilder WithHostingServices(this IMvcBuilder builder)
+    {
+        return builder
+            .ConfigureApplicationPartManager(
+                manager =>
+                {
+                    manager.FeatureProviders.Add(new BusinessControllerFeatureProvider());
+                });
+    }
+
+    #endregion
 }
