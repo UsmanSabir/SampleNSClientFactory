@@ -5,6 +5,7 @@ using System.Text.Json;
 using CommunicationServiceAbstraction;
 using CommunicationServiceApiFramework.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CommunicationServiceApiFramework.ServiceClient;
 
@@ -13,6 +14,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
     private ServiceIdentities _serviceId;
     IHttpClientFactory _httpClientFactory = null!;
     private IServiceAddressResolver? _serviceAddressResolver = null;
+    private ILogger<ProxyDecorator<T>>? _logger;
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
@@ -95,6 +97,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
         if (proxyDecorator != null)
         {
             proxyDecorator._serviceId = serviceId;
+            proxyDecorator._logger = serviceProvider.GetService<ILogger<ProxyDecorator<T>>>();
             proxyDecorator._httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
             proxyDecorator._serviceAddressResolver = serviceProvider.GetRequiredService<IServiceAddressResolver>();
         }
