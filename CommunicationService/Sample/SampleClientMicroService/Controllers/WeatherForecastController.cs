@@ -1,4 +1,7 @@
+using System.Diagnostics;
+using CommunicationServiceAbstraction;
 using Microsoft.AspNetCore.Mvc;
+using Sample.Contracts;
 
 namespace SampleClientMicroService.Controllers
 {
@@ -12,15 +15,22 @@ namespace SampleClientMicroService.Controllers
     };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IClientFactory _clientFactory;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IClientFactory clientFactory)
         {
             _logger = logger;
+            _clientFactory = clientFactory;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
+            var businessPartnerService = _clientFactory.CreateClient<IBusinessPartnerService>();
+            var bpModel = businessPartnerService.GetById(1);
+            Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
+
+
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),

@@ -5,7 +5,9 @@ using Sample.Contracts;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCommunicationFramework();
 
+builder.Services.RegisterAsServiceClient<IBusinessPartnerService>(ServiceIdentities.UMS);
 builder.Services.RegisterClientBusinessServices(ServiceIdentities.UMS,
     typeof(IBusinessPartnerService).Assembly);
 
