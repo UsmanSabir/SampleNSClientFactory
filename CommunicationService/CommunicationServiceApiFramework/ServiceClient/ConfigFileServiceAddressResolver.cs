@@ -1,7 +1,7 @@
 ﻿using CommunicationServiceAbstraction;
 using Microsoft.Extensions.Configuration;
 
-namespace CommunicationServiceApiHosting.ServiceClient;
+namespace CommunicationServiceApiFramework.ServiceClient;
 
 public class ConfigFileServiceAddressResolver : IServiceAddressResolver
 {

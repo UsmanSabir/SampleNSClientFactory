@@ -3,10 +3,10 @@ using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json;
 using CommunicationServiceAbstraction;
-using CommunicationServiceApiHosting.Models;
+using CommunicationServiceApiFramework.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CommunicationServiceApiHosting.ServiceClient;
+namespace CommunicationServiceApiFramework.ServiceClient;
 
 internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
 {

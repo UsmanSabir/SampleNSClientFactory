@@ -1,7 +1,7 @@
 ﻿using CommunicationServiceAbstraction;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CommunicationServiceApiHosting.ServiceClient;
+namespace CommunicationServiceApiFramework.ServiceClient;
 
 internal class ClientFactoryImpl : IClientFactory
 {

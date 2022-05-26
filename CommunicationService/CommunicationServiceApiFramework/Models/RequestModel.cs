@@ -1,4 +1,4 @@
-﻿namespace CommunicationServiceApiHosting.Models;
+﻿namespace CommunicationServiceApiFramework.Models;
 
 internal class RequestModel
 {

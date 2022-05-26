@@ -1,12 +1,14 @@
 ﻿using System.Reflection;
 using CommunicationServiceAbstraction;
-using CommunicationServiceApiHosting.ServiceClient;
+using CommunicationServiceApiFramework.ServiceClient;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CommunicationServiceApiHosting.Helpers;
+namespace CommunicationServiceApiFramework;
 
 public static class Extensions
 {
+    #region Client Services
+
     public static IServiceCollection RegisterAsServiceClient<T>(this IServiceCollection services, ServiceIdentities serviceId)
         where T : IBusinessService
     {
@@ -37,7 +39,7 @@ public static class Extensions
         foreach (TypeInfo ti in assemblies.SelectMany(s => s.DefinedTypes))
         {
             if (ti.IsClass && !ti.IsAbstract
-                && ti.ImplementedInterfaces.Contains(bizType))
+                           && ti.ImplementedInterfaces.Contains(bizType))
             {
                 var genericMethod = methodInfo.MakeGenericMethod(new[] { ti.GetType() });
                 var invoke = genericMethod.Invoke(null, new object[] { services, serviceId });
@@ -46,5 +48,9 @@ public static class Extensions
 
         return services;
     }
+    
+
+    #endregion
+
 
 }
