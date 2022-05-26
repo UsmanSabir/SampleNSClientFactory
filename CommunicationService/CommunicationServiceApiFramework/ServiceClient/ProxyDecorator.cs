@@ -112,7 +112,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
     public static T Decorate(IServiceProvider serviceProvider, ServiceIdentities serviceId)
     {
         var proxy = Create<T, ProxyDecorator<T>>();
-        
+
         var proxyDecorator = (proxy as ProxyDecorator<T>);
         if (proxyDecorator != null)
         {
