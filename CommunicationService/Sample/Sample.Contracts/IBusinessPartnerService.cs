@@ -8,6 +8,4 @@ namespace Sample.Contracts
 
         BPModel UpdateModel(int id, string name, BPModel model);
     }
-
-    
 }
