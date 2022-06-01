@@ -70,7 +70,30 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                         //response model
                         if (responseModel.IsSuccess)
                         {
-                            if (targetMethod.ReturnType != typeof(void))
+                            if (typeof(Task).IsAssignableFrom(targetMethod.ReturnType))
+                            {
+                                var taskType = targetMethod.ReturnType;
+                                bool isTaskOfT =
+                                    taskType.IsGenericType
+                                    && taskType.GetGenericTypeDefinition() == typeof(Task<>);
+                                if (isTaskOfT)
+                                {
+                                    var targetType = taskType.GenericTypeArguments[0]; //NOTE: only Task<T> supported. Multiple parameters not supported on any generic type
+                                    var responseObj =
+                                        JsonSerializer.Deserialize(responseModel.Response, targetType);
+
+                                    var fromResultName = nameof(Task.FromResult);
+                                    var methodInfo = typeof(Task).GetMethod(fromResultName);
+                                    
+                                    var res = methodInfo!.MakeGenericMethod(targetType).Invoke(null, new[] {responseObj});
+                                    return res;
+                                }
+                                else
+                                {
+                                    return Task.CompletedTask;
+                                }
+                            }
+                            else if (targetMethod.ReturnType != typeof(void))
                             {
                                 var responseObj =
                                     JsonSerializer.Deserialize(responseModel.Response, targetMethod.ReturnType);

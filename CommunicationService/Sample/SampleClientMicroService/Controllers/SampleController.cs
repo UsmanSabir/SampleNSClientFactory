@@ -19,12 +19,16 @@ namespace SampleClientMicroService.Controllers
         }
 
         [HttpGet(Name = "GetBusinessPartner")]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
             var businessPartnerService = _clientFactory.CreateClient<IBusinessPartnerService>();
             var bpModel = businessPartnerService.GetById(1);
             Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
+            bpModel = await businessPartnerService.GetByIdAsync(1);
+            Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
             bpModel.Name = "abc";
+            await businessPartnerService.UpdateModelAsync(3, "Temp", bpModel);
+
             bpModel = businessPartnerService.UpdateModel(3, "Temp", bpModel);
             Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
 

@@ -52,6 +52,26 @@ public class BusinessServiceHostController<T> : ControllerBase where T : IBusine
             }
 
             var response = methodInfo.Invoke(_instance, parm);
+            if (response is Task task)
+            {
+                task.Wait();
+
+                var taskType = task.GetType();
+                bool isTaskOfT =
+                    taskType.IsGenericType
+                    && taskType.GetGenericTypeDefinition() == typeof(Task<>);
+                    //&& taskType.GetGenericArguments()[0] != typeof(System.Threading.Tasks.VoidTaskResult);
+                if (isTaskOfT)
+                {
+                    var resultProperty = response.GetType().GetProperty("Result");
+                    response = resultProperty?.GetValue(task);
+                }
+                else
+                {
+                    response = null;
+                }
+            }
+
             var result = ResponseModel.SuccessResult(response);
             return Ok(result);
         }
