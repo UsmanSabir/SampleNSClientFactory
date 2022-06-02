@@ -49,33 +49,33 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
             {
                 // todo: TCS 
 
-                if (typeof(Task).IsAssignableFrom(targetMethod.ReturnType))
-                {
-                    var taskType = targetMethod.ReturnType;
-                    bool isTaskOfT =
-                        taskType.IsGenericType
-                        && taskType.GetGenericTypeDefinition() == typeof(Task<>);
+                //if (typeof(Task).IsAssignableFrom(targetMethod.ReturnType))
+                //{
+                //    var taskType = targetMethod.ReturnType;
+                //    bool isTaskOfT =
+                //        taskType.IsGenericType
+                //        && taskType.GetGenericTypeDefinition() == typeof(Task<>);
+                //    //try https://stackoverflow.com/a/58503313
+                //    if (isTaskOfT)
+                //    {
+                //        TaskCompletionSource tcs= new TaskCompletionSource();
+                //        //tcs.SetResult(5);
+                //        var tsk = Task.Run<int>(() =>
+                //        {
+                //            //test
+                //            return 5;
+                //        });
+                //        var methodName = nameof(Task.Run);
+                //        var methodInfo = typeof(Task).GetMethod(methodName);
 
-                    if (isTaskOfT)
-                    {
-                        TaskCompletionSource tcs= new TaskCompletionSource();
-                        tcs.SetResult(5);
-                        var tsk = Task.Run<int>(() =>
-                        {
-                            //test
-                            return 5;
-                        });
-                        var methodName = nameof(Task.Run);
-                        var methodInfo = typeof(Task).GetMethod(methodName);
+                //        var targetType = taskType.GenericTypeArguments[0]; //NOTE: only Task<T> supported. Multiple parameters not supported on any generic type
+                //        var method = methodInfo!.MakeGenericMethod(targetType);
 
-                        var targetType = taskType.GenericTypeArguments[0]; //NOTE: only Task<T> supported. Multiple parameters not supported on any generic type
-                        var method = methodInfo!.MakeGenericMethod(targetType);
+                //        var res = method.Invoke(null, new[] {  });
 
-                        var res = method.Invoke(null, new[] {  });
-
-                    }
+                //    }
                    
-                }
+                //}
                     string? argsJson = null;
                 if (args is { Length: > 0 })
                 {
@@ -88,8 +88,17 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                     MethodName = targetMethod.Name,
                     Args = argsJson,
                 };
-                var response = httpClient.PostAsJsonAsync(serviceEndpoint, requestModel)
-                    .Result;
+                httpClient.PostAsJsonAsync(serviceEndpoint, requestModel)
+                    .ContinueWith(t =>
+                    {
+                        var response = t.Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+
+                        }
+                    });
+                    //.Result;
+
                 if (response.IsSuccessStatusCode)
                 {
                     var responseModel = response.Content.ReadFromJsonAsync<ResponseModel>().Result;
@@ -175,5 +184,14 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
         }
 
         return proxy;
+    }
+
+    private static Task<T2> HandleTaskGenericAsync<T1, T2>(T1 result, MethodInfo methodName) where T1 : Task<T2>
+    {
+        return result.ContinueWith(parent =>
+        {
+            Console.WriteLine($"After: {methodName}");
+            return parent.Result;
+        });
     }
 }
