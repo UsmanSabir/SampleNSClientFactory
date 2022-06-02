@@ -47,7 +47,36 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
 
             try
             {
-                string? argsJson = null;
+                // todo: TCS 
+
+                if (typeof(Task).IsAssignableFrom(targetMethod.ReturnType))
+                {
+                    var taskType = targetMethod.ReturnType;
+                    bool isTaskOfT =
+                        taskType.IsGenericType
+                        && taskType.GetGenericTypeDefinition() == typeof(Task<>);
+
+                    if (isTaskOfT)
+                    {
+                        TaskCompletionSource tcs= new TaskCompletionSource();
+                        tcs.SetResult(5);
+                        var tsk = Task.Run<int>(() =>
+                        {
+                            //test
+                            return 5;
+                        });
+                        var methodName = nameof(Task.Run);
+                        var methodInfo = typeof(Task).GetMethod(methodName);
+
+                        var targetType = taskType.GenericTypeArguments[0]; //NOTE: only Task<T> supported. Multiple parameters not supported on any generic type
+                        var method = methodInfo!.MakeGenericMethod(targetType);
+
+                        var res = method.Invoke(null, new[] {  });
+
+                    }
+                   
+                }
+                    string? argsJson = null;
                 if (args is { Length: > 0 })
                 {
                     argsJson = JsonSerializer.Serialize(args);
