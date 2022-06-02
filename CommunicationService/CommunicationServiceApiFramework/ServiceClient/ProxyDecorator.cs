@@ -16,6 +16,20 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
     private IServiceAddressResolver? _serviceAddressResolver;
     private ILogger<ProxyDecorator<T>>? _logger;
 
+    private static readonly Dictionary<Type, MethodInfo> CachedAsyncEnumerationMethodInfos = new Dictionary<Type, MethodInfo>();
+    private static readonly Dictionary<Type, MethodInfo> CachedGenericTaskMethodInfos = new Dictionary<Type, MethodInfo>();
+    private static readonly Dictionary<Type, MethodInfo> CachedSyncEnumerationMethodInfos = new Dictionary<Type, MethodInfo>();
+    private static readonly MethodInfo GenericTask;
+    private static readonly MethodInfo SyncEnumeration;
+    private static readonly MethodInfo AsyncEnumeration;
+
+    static ProxyDecorator()
+    {
+        //GenericTask = typeof(Class1<T>).GetMethod("HandleTaskGenericAsync", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+        AsyncEnumeration = typeof(ProxyDecorator<T>).GetMethod("Wrapper", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+        SyncEnumeration = typeof(ProxyDecorator<T>).GetMethod("SyncWrapper", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+    }
+
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
         try
@@ -154,6 +168,33 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                 {
                     throw new ApplicationException($"Didn't receive success response from remote server. {response.StatusCode}");
                 }
+
+                #region Reference_Code
+
+                Type returnType = targetMethod.ReturnType;
+                if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+                {
+                    Type resultType = returnType.GetGenericArguments()[0]; //IAsyncEnumerable hat nur eines
+                    if (!CachedAsyncEnumerationMethodInfos.ContainsKey(resultType))
+                    {
+                        CachedAsyncEnumerationMethodInfos.Add(resultType, AsyncEnumeration.MakeGenericMethod(resultType));
+                    }
+
+                    return CachedAsyncEnumerationMethodInfos[resultType].Invoke(null, new[] { result, targetMethod });
+                }
+
+                if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    Type resultType = returnType.GetGenericArguments()[0]; //IAsyncEnumerable hat nur eines
+                    if (!CachedSyncEnumerationMethodInfos.ContainsKey(resultType))
+                    {
+                        CachedSyncEnumerationMethodInfos.Add(resultType, SyncEnumeration.MakeGenericMethod(resultType));
+                    }
+
+                    return CachedSyncEnumerationMethodInfos[resultType].Invoke(null, new[] { result, targetMethod });
+                }
+
+                #endregion
             }
             catch (AggregateException ae)
             {
@@ -182,7 +223,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
             proxyDecorator._httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
             proxyDecorator._serviceAddressResolver = serviceProvider.GetRequiredService<IServiceAddressResolver>();
         }
-
+        
         return proxy;
     }
 
@@ -193,5 +234,25 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
             Console.WriteLine($"After: {methodName}");
             return parent.Result;
         });
+    }
+
+    private static IEnumerable<T> SyncWrapper<T>(IEnumerable<T> inner, MethodInfo targetMethod)
+    {
+        foreach (T t in inner)
+        {
+            yield return t;
+        }
+
+        Console.WriteLine($"After List: {targetMethod}");
+    }
+
+    private static async IAsyncEnumerable<T> Wrapper<T>(IAsyncEnumerable<T> inner, MethodInfo targetMethod)
+    {
+        await foreach (T t in inner)
+        {
+            yield return t;
+        }
+
+        Console.WriteLine($"After List: {targetMethod}");
     }
 }
