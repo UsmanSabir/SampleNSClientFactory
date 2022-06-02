@@ -1,6 +1,18 @@
 {
   "Routes": [
     {
+      "DownstreamPathTemplate": "/products",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7109
+        }
+      ],
+      "UpstreamPathTemplate": "/manufacture/products",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
       "DownstreamPathTemplate": "/todos/{id}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
