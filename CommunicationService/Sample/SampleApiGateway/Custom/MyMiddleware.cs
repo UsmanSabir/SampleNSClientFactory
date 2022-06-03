@@ -145,20 +145,22 @@ namespace SampleApiGateway.Custom
             if (resp != null && resp.IsSuccess
                 && httpContext.Response.HasStarted == false)
             {
-                var obj = JsonSerializer.Deserialize(resp.Response, typeof(object));
-                var dynamicObject = JsonSerializer.Deserialize<dynamic>(resp.Response)!;
-                //var downstreamResponse = httpContext.Items.DownstreamResponse();
-                //await _responder.SetResponseOnHttpContext(httpContext, downstreamResponse);
-                //httpContext.Response.ContentType = "application/json";
                 StringContent httpContent = new StringContent(resp.Response, System.Text.Encoding.UTF8, "application/json");
 
                 HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
                 responseMessage.Content = httpContent;
-                //var httpResponse = new OkResponse<dynamic>(dynamicObject);
                 var dResp = new DownstreamResponse(responseMessage);
                 httpContext.Items.UpsertDownstreamResponse(dResp);
+
+                //var obj = JsonSerializer.Deserialize(resp.Response, typeof(object));
+                //var dynamicObject = JsonSerializer.Deserialize<dynamic>(resp.Response)!;
+                //var downstreamResponse = httpContext.Items.DownstreamResponse();
+                //await _responder.SetResponseOnHttpContext(httpContext, downstreamResponse);
+                //httpContext.Response.ContentType = "application/json";
+                //var httpResponse = new OkResponse<dynamic>(dynamicObject);
+
                 //await _responder.SetResponseOnHttpContext(httpContext, dResp);
-                
+
                 //await _responder.SetResponseOnHttpContext(httpContext, downstreamResponse);
 
                 //httpContext.DownstreamResponse = new DownstreamResponse(httpResponse.Data, httpStatusCode, httpResponse.Data.Headers, "OcelotGrpcHttpMiddleware");
