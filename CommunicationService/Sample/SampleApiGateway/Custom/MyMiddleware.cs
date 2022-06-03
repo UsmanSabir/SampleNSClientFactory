@@ -1,7 +1,11 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using CommunicationServiceApiFramework.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Ocelot.Logging;
 using Ocelot.Middleware;
+using Ocelot.Responder;
+using Ocelot.Responses;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace SampleApiGateway.Custom
 {
@@ -11,15 +15,17 @@ namespace SampleApiGateway.Custom
         private readonly IConfiguration configuration;
         private readonly IMemoryCache memoryCache;
         private readonly IOcelotLoggerFactory loggerFactory;
+        private readonly IHttpResponder _responder;
 
         public MyMiddleware(RequestDelegate next, IConfiguration configuration,
-            IMemoryCache memoryCache, IOcelotLoggerFactory loggerFactory) 
+            IMemoryCache memoryCache, IOcelotLoggerFactory loggerFactory, IHttpResponder responder)
             : base(loggerFactory.CreateLogger<MyMiddleware>())
         {
             _next = next;
             this.configuration = configuration;
             this.memoryCache = memoryCache;
             this.loggerFactory = loggerFactory;
+            _responder = responder;
         }
 
         public async Task Invoke(HttpContext httpContext)
@@ -52,13 +58,11 @@ namespace SampleApiGateway.Custom
             var port = route.DownstreamAddresses.FirstOrDefault()?.Port;
             var method = route.DownstreamPathTemplate.Value;
             var body = httpContext.Request.Body;
-            if(route.Key== "sample")
-            {
-                Debug.WriteLine(route.Key);
-            }
+
+
             //var routeKeysConfigs = routeKeys.DownstreamRouteConfig;
 
-            var rout= httpContext.GetRouteData();
+            var rout = httpContext.GetRouteData();
             //var downstreamRouteHolder = httpContext.Items.DownstreamRouteHolder();
             //if (routeKeysConfigs == null || !routeKeysConfigs.Any())
             {
@@ -84,18 +88,18 @@ namespace SampleApiGateway.Custom
 
                 //await Task.WhenAll(tasks);
             }
-                //var rv= httpContext.GetRouteValue(rout.Values);
-                //var downstreamRoute = httpContext.Items.DownstreamRoute();
-                //var a = downstreamRoute.AuthenticationOptions.AuthenticationProviderKey;
+            //var rv= httpContext.GetRouteValue(rout.Values);
+            //var downstreamRoute = httpContext.Items.DownstreamRoute();
+            //var a = downstreamRoute.AuthenticationOptions.AuthenticationProviderKey;
 
-                //var result = await httpContext.AuthenticateAsync(downstreamRoute.AuthenticationOptions.AuthenticationProviderKey);
-                //if (result.Principal != null)
-                //{
-                //    httpContext.User = result.Principal;
-                //}
+            //var result = await httpContext.AuthenticateAsync(downstreamRoute.AuthenticationOptions.AuthenticationProviderKey);
+            //if (result.Principal != null)
+            //{
+            //    httpContext.User = result.Principal;
+            //}
 
-                //var user = httpContext.User;
-                var request = httpContext.Request;
+            //var user = httpContext.User;
+            var request = httpContext.Request;
 
             //httpContext.Items.SetError(new UnauthenticatedError("unauthorized, need login"));
 
@@ -132,6 +136,39 @@ namespace SampleApiGateway.Custom
             //}
 
             await _next.Invoke(httpContext);
+
+            var isJson = httpContext.Response.ContentType == "application/json";
+            var downstreamResponse = httpContext.Items.DownstreamResponse();
+            var resp = await downstreamResponse.Content.ReadFromJsonAsync<ResponseModel>();
+            //var content = await downstreamResponse.Content.ReadAsStringAsync();
+            //var resp = JsonSerializer.Deserialize<ResponseModel>(content, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true});
+            if (resp != null && resp.IsSuccess
+                && httpContext.Response.HasStarted == false)
+            {
+                var obj = JsonSerializer.Deserialize(resp.Response, typeof(object));
+                var dynamicObject = JsonSerializer.Deserialize<dynamic>(resp.Response)!;
+                //var downstreamResponse = httpContext.Items.DownstreamResponse();
+                //await _responder.SetResponseOnHttpContext(httpContext, downstreamResponse);
+                //httpContext.Response.ContentType = "application/json";
+                StringContent httpContent = new StringContent(resp.Response, System.Text.Encoding.UTF8, "application/json");
+
+                HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+                responseMessage.Content = httpContent;
+                //var httpResponse = new OkResponse<dynamic>(dynamicObject);
+                var dResp = new DownstreamResponse(responseMessage);
+                httpContext.Items.UpsertDownstreamResponse(dResp);
+                //await _responder.SetResponseOnHttpContext(httpContext, dResp);
+                
+                //await _responder.SetResponseOnHttpContext(httpContext, downstreamResponse);
+
+                //httpContext.DownstreamResponse = new DownstreamResponse(httpResponse.Data, httpStatusCode, httpResponse.Data.Headers, "OcelotGrpcHttpMiddleware");
+                //await httpContext.Response.WriteAsJsonAsync(httpResponse);
+
+                //httpContext.Response.ContentType = "application/json";
+                //await httpContext.Response.WriteAsync(resp.Response);
+
+            }
+            //httpContext.Response.HttpContext
         }
 
         private HttpContext Copy(HttpContext source)

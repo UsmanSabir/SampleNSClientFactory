@@ -2,7 +2,7 @@
 
 namespace CommunicationServiceApiFramework.Models;
 
-internal class ResponseModel
+public class ResponseModel
 {
     public bool IsSuccess { get; set; }
     public string Error { get; set; }
