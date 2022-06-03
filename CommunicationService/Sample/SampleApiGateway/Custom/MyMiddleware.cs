@@ -9,6 +9,7 @@ using System.Text.Json;
 
 namespace SampleApiGateway.Custom
 {
+    //https://developpaper.com/changes-in-ocelot-middleware/
     public class MyMiddleware : Ocelot.Middleware.OcelotMiddleware
     {
         private readonly RequestDelegate _next;
