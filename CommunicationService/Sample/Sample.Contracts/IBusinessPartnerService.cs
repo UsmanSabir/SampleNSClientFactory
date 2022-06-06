@@ -11,5 +11,7 @@ namespace Sample.Contracts
         BPModel UpdateModel(int id, string name, BPModel model);
 
         Task UpdateModelAsync(int id, string name, BPModel model);
+
+        void NotifyEventId(int id);
     }
 }
