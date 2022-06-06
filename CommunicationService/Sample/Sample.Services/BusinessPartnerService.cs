@@ -1,4 +1,5 @@
 ﻿using Sample.Contracts;
+using System.Diagnostics;
 
 namespace Sample.Services
 {
@@ -21,6 +22,11 @@ namespace Sample.Services
             return Task.FromResult(res);
         }
 
+        public void NotifyEventId(int id)
+        {
+            Debug.WriteLine($"Event Id {id}");
+        }
+
         public BPModel UpdateModel(int id, string name, BPModel model)
         {
             Console.WriteLine($"{id}-{name}-{model.DateOfBirth}");
@@ -32,5 +38,6 @@ namespace Sample.Services
         {
             
         }
+
     }
 }

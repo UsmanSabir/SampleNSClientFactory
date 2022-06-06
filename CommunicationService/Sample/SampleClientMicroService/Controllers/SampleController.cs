@@ -22,6 +22,7 @@ namespace SampleClientMicroService.Controllers
         public async Task<IActionResult> Get()
         {
             var businessPartnerService = _clientFactory.CreateClient<IBusinessPartnerService>();
+            businessPartnerService.NotifyEventId(3);
             var bpModel = businessPartnerService.GetById(1);
             Debug.WriteLine(bpModel.Id + " : " + bpModel.Name);
             bpModel = await businessPartnerService.GetByIdAsync(1);
