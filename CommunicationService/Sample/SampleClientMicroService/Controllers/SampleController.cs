@@ -3,8 +3,8 @@ using CommunicationServiceAbstraction;
 using Microsoft.AspNetCore.Mvc;
 using Sample.Contracts;
 
-namespace SampleClientMicroService.Controllers
-{
+namespace SampleClientMicroService.Controllers;
+
     [ApiController]
     [Route("[controller]")]
     public class SampleController : ControllerBase
@@ -36,4 +36,3 @@ namespace SampleClientMicroService.Controllers
             return Ok(bpModel);
         }
     }
-}
