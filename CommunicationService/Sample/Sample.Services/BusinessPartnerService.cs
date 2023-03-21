@@ -18,6 +18,7 @@ namespace Sample.Services
         public Task<BPModel> GetByIdAsync(int id)
         {
             var res = GetById(id);
+            Thread.Sleep(5000);
             return Task.FromResult(res);
         }
 
@@ -30,7 +31,7 @@ namespace Sample.Services
 
         public async Task UpdateModelAsync(int id, string name, BPModel model)
         {
-            
+            Thread.Sleep(5000);
         }
     }
 }

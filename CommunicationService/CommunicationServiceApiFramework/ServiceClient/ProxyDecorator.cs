@@ -88,9 +88,9 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                 //        var res = method.Invoke(null, new[] {  });
 
                 //    }
-                   
+
                 //}
-                    string? argsJson = null;
+                string? argsJson = null;
                 if (args is { Length: > 0 })
                 {
                     argsJson = JsonSerializer.Serialize(args);
@@ -102,16 +102,64 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
                     MethodName = targetMethod.Name,
                     Args = argsJson,
                 };
-                httpClient.PostAsJsonAsync(serviceEndpoint, requestModel)
-                    .ContinueWith(t =>
-                    {
-                        var response = t.Result;
-                        if (response.IsSuccessStatusCode)
-                        {
 
-                        }
-                    });
-                    //.Result;
+                if (typeof(Task).IsAssignableFrom(targetMethod.ReturnType))
+                {
+                    var taskType = targetMethod.ReturnType;
+                    bool isTaskOfT =
+                        taskType.IsGenericType
+                        && taskType.GetGenericTypeDefinition() == typeof(Task<>);
+
+                    Type targetType = null;
+
+                    if (isTaskOfT)
+                        targetType = taskType.GenericTypeArguments[0]; //NOTE: only Task<T> supported. Multiple parameters not supported on any generic type
+
+                    var tcsType = targetType == null ? typeof(TaskCompletionSource) : typeof(TaskCompletionSource<>).MakeGenericType(targetType);
+                    var setResult = tcsType.GetMethod("SetResult");
+                    var setException = tcsType.GetMethod("SetException", new[] { typeof(Exception) });
+                    var returnTask = tcsType.GetProperty("Task");
+
+                    var tsc = Activator.CreateInstance(tcsType);
+                    
+                    httpClient.PostAsJsonAsync(serviceEndpoint, requestModel)
+                        .ContinueWith(t =>
+                        {
+                            var response = t.Result;
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var responseModel = response.Content.ReadFromJsonAsync<ResponseModel>().Result;
+                                if (responseModel != null)
+                                {
+                                    if (responseModel.IsSuccess)
+                                    {
+                                        if (isTaskOfT)
+                                        {
+                                            var responseObj = JsonSerializer.Deserialize(responseModel.Response, targetType);
+                                            setResult.Invoke(tsc, new object[] { responseObj });
+                                        }
+                                        else
+                                        {
+                                            setResult.Invoke(tsc, new object[] { });
+                                        }
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        setException.Invoke(tsc, new object[] { new Exception(responseModel.Error) });
+                                        return;
+                                    }
+                                }
+                            }
+                            setException.Invoke(tsc, new object[] { new Exception(response.StatusCode + " > " + response.Content?.ToString()) });
+                        });
+
+                    var ret = tsc as TaskCompletionSource;
+                    return ret?.Task ?? returnTask.GetValue(tsc);
+                }
+
+                var response = httpClient.PostAsJsonAsync(serviceEndpoint, requestModel)
+                .Result;
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -136,8 +184,8 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
 
                                     var fromResultName = nameof(Task.FromResult);
                                     var methodInfo = typeof(Task).GetMethod(fromResultName);
-                                    
-                                    var res = methodInfo!.MakeGenericMethod(targetType).Invoke(null, new[] {responseObj});
+
+                                    var res = methodInfo!.MakeGenericMethod(targetType).Invoke(null, new[] { responseObj });
                                     return res;
                                 }
                                 else
@@ -171,28 +219,28 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
 
                 #region Reference_Code
 
-                Type returnType = targetMethod.ReturnType;
-                if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
-                {
-                    Type resultType = returnType.GetGenericArguments()[0]; //IAsyncEnumerable hat nur eines
-                    if (!CachedAsyncEnumerationMethodInfos.ContainsKey(resultType))
-                    {
-                        CachedAsyncEnumerationMethodInfos.Add(resultType, AsyncEnumeration.MakeGenericMethod(resultType));
-                    }
+                //Type returnType = targetMethod.ReturnType;
+                //if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+                //{
+                //    Type resultType = returnType.GetGenericArguments()[0]; //IAsyncEnumerable hat nur eines
+                //    if (!CachedAsyncEnumerationMethodInfos.ContainsKey(resultType))
+                //    {
+                //        CachedAsyncEnumerationMethodInfos.Add(resultType, AsyncEnumeration.MakeGenericMethod(resultType));
+                //    }
 
-                    return CachedAsyncEnumerationMethodInfos[resultType].Invoke(null, new[] { result, targetMethod });
-                }
+                //    return CachedAsyncEnumerationMethodInfos[resultType].Invoke(null, new[] { result, targetMethod });
+                //}
 
-                if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    Type resultType = returnType.GetGenericArguments()[0]; //IAsyncEnumerable hat nur eines
-                    if (!CachedSyncEnumerationMethodInfos.ContainsKey(resultType))
-                    {
-                        CachedSyncEnumerationMethodInfos.Add(resultType, SyncEnumeration.MakeGenericMethod(resultType));
-                    }
+                //if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                //{
+                //    Type resultType = returnType.GetGenericArguments()[0]; //IAsyncEnumerable hat nur eines
+                //    if (!CachedSyncEnumerationMethodInfos.ContainsKey(resultType))
+                //    {
+                //        CachedSyncEnumerationMethodInfos.Add(resultType, SyncEnumeration.MakeGenericMethod(resultType));
+                //    }
 
-                    return CachedSyncEnumerationMethodInfos[resultType].Invoke(null, new[] { result, targetMethod });
-                }
+                //    return CachedSyncEnumerationMethodInfos[resultType].Invoke(null, new[] { result, targetMethod });
+                //}
 
                 #endregion
             }
@@ -223,7 +271,7 @@ internal class ProxyDecorator<T> : DispatchProxy where T : IBusinessService
             proxyDecorator._httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
             proxyDecorator._serviceAddressResolver = serviceProvider.GetRequiredService<IServiceAddressResolver>();
         }
-        
+
         return proxy;
     }
 
